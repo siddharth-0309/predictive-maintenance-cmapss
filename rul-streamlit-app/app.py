@@ -377,6 +377,58 @@ with tcol:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
+# LIVE INSTRUMENT CLUSTER — analog cockpit-style dials per sensor
+# ------------------------------------------------------------------
+st.markdown('<div class="panel">', unsafe_allow_html=True)
+st.markdown('<div class="panel-label">Live Instrument Cluster — Latest Reading</div>', unsafe_allow_html=True)
+
+# Realistic operating bands pulled from the dataset itself, with a little
+# headroom on each side so the needle never pins at the edge.
+instrument_specs = {
+    "T24": {"label": "T24 · Fan Inlet Temp", "unit": "°R", "range": [636, 649], "color": "#60a5fa"},
+    "T50": {"label": "T50 · LPT Outlet Temp", "unit": "°R", "range": [1378, 1440], "color": "#f472b6"},
+    "Ps30": {"label": "Ps30 · HPC Static Pressure", "unit": "psia", "range": [46.0, 49.0], "color": "#34d399"},
+    "Nc": {"label": "Nc · Core Speed", "unit": "rpm", "range": [9000, 9180], "color": "#fbbf24"},
+}
+
+dial_cols = st.columns(4)
+for col, (sensor, spec) in zip(dial_cols, instrument_specs.items()):
+    reading = float(last_row[sensor].values[0])
+    lo, hi = spec["range"]
+    with col:
+        fig_dial = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=reading,
+            number={"suffix": f" {spec['unit']}", "font": {"size": 18, "color": "#e0f2fe", "family": "Share Tech Mono"}},
+            gauge={
+                "axis": {"range": [lo, hi], "tickcolor": "#5a89a8", "tickfont": {"size": 8, "color": "#5a89a8"}, "nticks": 4},
+                "bar": {"color": spec["color"], "thickness": 0.35},
+                "bgcolor": "rgba(0,0,0,0)",
+                "borderwidth": 1,
+                "bordercolor": "rgba(34,211,238,0.25)",
+                "threshold": {
+                    "line": {"color": "#e0f2fe", "width": 2},
+                    "thickness": 0.9,
+                    "value": reading
+                }
+            }
+        ))
+        fig_dial.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            height=160,
+            margin=dict(l=15, r=15, t=10, b=0)
+        )
+        st.plotly_chart(fig_dial, use_container_width=True, config={"displayModeBar": False})
+        st.markdown(
+            f"<div style='text-align:center;font-size:11px;color:#7ea6c4;"
+            f"letter-spacing:1px;margin-top:-10px;'>{spec['label']}</div>",
+            unsafe_allow_html=True
+        )
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ------------------------------------------------------------------
 # RAW SENSOR SNAPSHOT (expandable)
 # ------------------------------------------------------------------
 with st.expander("📟 View raw sensor snapshot (latest cycle)"):
