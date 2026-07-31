@@ -3,6 +3,13 @@ import pandas as pd
 import joblib
 import plotly.graph_objects as go
 from datetime import datetime
+import os
+
+# Resolve paths relative to this script's own folder, NOT the process's
+# working directory. Streamlit Cloud runs apps with the repo root as the
+# working directory even when app.py lives in a subfolder, so plain
+# relative paths like "model/rul_model.pkl" break there. This fixes it.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ------------------------------------------------------------------
 # PAGE CONFIG
@@ -19,13 +26,13 @@ st.set_page_config(
 # ------------------------------------------------------------------
 @st.cache_resource
 def load_artifacts():
-    model = joblib.load("model/rul_model.pkl")
-    feature_columns = joblib.load("model/feature_columns.pkl")
+    model = joblib.load(os.path.join(BASE_DIR, "model", "rul_model.pkl"))
+    feature_columns = joblib.load(os.path.join(BASE_DIR, "model", "feature_columns.pkl"))
     return model, feature_columns
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("data/test_last.csv")
+    return pd.read_csv(os.path.join(BASE_DIR, "data", "test_last.csv"))
 
 model, feature_columns = load_artifacts()
 test_data = load_data()
