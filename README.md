@@ -4,7 +4,9 @@ Predicting Remaining Useful Life (RUL) of turbofan jet engines using sensor time
 
 ![Python](https://img.shields.io/badge/Python-3.10-blue)
 ![LightGBM](https://img.shields.io/badge/Model-LightGBM-green)
-![Status](https://img.shields.io/badge/Status-In%20Progress-yellow)
+![Status](https://img.shields.io/badge/Status-Deployed-brightgreen)
+
+**🔗 Live App:** [predictive-maintenance-cmapss](https://predictive-maintenance-cmapss-g4kkrm84nttd8n8xmygvps.streamlit.app/)
 
 ---
 
@@ -83,7 +85,14 @@ Test error is on par with (even slightly better than) validation error, indicati
 - **Data handling:** Pandas, NumPy
 - **Visualization:** Matplotlib, Seaborn
 - **Modeling:** LightGBM, Scikit-learn
+- **App:** Streamlit (deployed on Streamlit Community Cloud)
 - **Environment:** Google Colab
+
+## 🚀 Live Demo
+
+Try the deployed app here: **[predictive-maintenance-cmapss.streamlit.app](https://predictive-maintenance-cmapss-g4kkrm84nttd8n8xmygvps.streamlit.app/)**
+
+Select an engine to view its sensor trends and get the predicted RUL along with a health status indicator.
 
 ## 📊 Dataset
 
@@ -97,8 +106,8 @@ NASA CMAPSS (Commercial Modular Aero-Propulsion System Simulation) — FD001 sub
 - [x] Feature engineering (rolling mean, rate of change)
 - [x] Baseline LightGBM model with RUL capping
 - [x] Evaluation on official held-out test set
+- [x] Streamlit app — interactive dashboard to select an engine, view sensor trends, and see predicted RUL with a health status indicator (safe / monitor / critical)
 - [ ] Hyperparameter tuning
-- [ ] Streamlit app — interactive dashboard to select an engine, view sensor trends, and see predicted RUL with a health status indicator (safe / monitor / critical)
 
 ## 📁 Repository Structure
 
@@ -108,5 +117,5 @@ predictive-maintenance-cmapss/
 ├── notebook/
 │   └── rul_prediction.ipynb
 ├── requirements.txt
-└── app.py                  # Streamlit app (upcoming)
+└── app.py                  # Streamlit app (deployed)
 ```
