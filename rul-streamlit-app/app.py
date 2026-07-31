@@ -336,14 +336,25 @@ with tcol:
         "Ps30": "#34d399",
         "Nc": "#fbbf24",
     }
+    # Each sensor lives on a very different scale (Nc ~9000, T50 ~1400,
+    # T24 ~640, Ps30 ~47). Plotting raw values on one shared axis makes the
+    # smaller-range sensors look like flat lines. So we normalize each
+    # sensor to its own 0-100% range for the visual trend, while showing
+    # the true raw value in the hover tooltip via customdata.
     for sensor, color in sensor_colors.items():
+        raw = engine_data[sensor]
+        s_min, s_max = raw.min(), raw.max()
+        span = (s_max - s_min) or 1  # avoid divide-by-zero if flat
+        normalized = (raw - s_min) / span * 100
+
         fig_trend.add_trace(go.Scatter(
             x=engine_data["time_cycles"],
-            y=engine_data[sensor],
+            y=normalized,
             mode="lines",
             name=sensor,
             line=dict(color=color, width=2),
-            hovertemplate=f"{sensor}: %{{y:.2f}}<br>Cycle: %{{x}}<extra></extra>"
+            customdata=raw,
+            hovertemplate=f"{sensor}: %{{customdata:.2f}}<br>Cycle: %{{x}}<extra></extra>"
         ))
 
     fig_trend.update_layout(
@@ -354,7 +365,12 @@ with tcol:
         margin=dict(l=10, r=10, t=10, b=10),
         legend=dict(orientation="h", y=1.18, font=dict(color="#e0f2fe")),
         xaxis=dict(title="Cycle", gridcolor="rgba(34,211,238,0.08)", zerolinecolor="rgba(34,211,238,0.1)"),
-        yaxis=dict(gridcolor="rgba(34,211,238,0.08)", zerolinecolor="rgba(34,211,238,0.1)"),
+        yaxis=dict(
+            title="Relative trend (%)",
+            range=[-5, 105],
+            gridcolor="rgba(34,211,238,0.08)",
+            zerolinecolor="rgba(34,211,238,0.1)"
+        ),
         hovermode="x unified"
     )
     st.plotly_chart(fig_trend, use_container_width=True, config={"displayModeBar": False})
