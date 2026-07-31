@@ -1,0 +1,138 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+header h1 {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+.subtitle {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.control-panel {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.control-panel label {
+    font-weight: 600;
+}
+
+#engineSelect {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+.hidden {
+    display: none;
+}
+
+#loadingMsg, #errorMsg {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+}
+
+#errorMsg {
+    color: #f87171;
+}
+
+.cards-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.card-label {
+    font-size: 13px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-value {
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.status-card.healthy {
+    border-color: #22c55e;
+    background: linear-gradient(135deg, #14532d33, #1e293b);
+}
+.status-card.healthy .card-value { color: #22c55e; }
+
+.status-card.warning {
+    border-color: #eab308;
+    background: linear-gradient(135deg, #71400833, #1e293b);
+}
+.status-card.warning .card-value { color: #eab308; }
+
+.status-card.critical {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, #7f1d1d33, #1e293b);
+}
+.status-card.critical .card-value { color: #ef4444; }
+
+.chart-container {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.chart-container h2 {
+    font-size: 16px;
+    margin-bottom: 16px;
+    color: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+    .cards-row {
+        grid-template-columns: 1fr;
+    }
+}
