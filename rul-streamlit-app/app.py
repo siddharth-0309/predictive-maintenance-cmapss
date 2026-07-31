@@ -11,6 +11,97 @@ import os
 # relative paths like "model/rul_model.pkl" break there. This fixes it.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+# ------------------------------------------------------------------
+# REALISTIC ANALOG GAUGE — hand-drawn SVG, not a flat chart-library gauge.
+# Mimics a physical cockpit instrument: metal bezel, glass highlight,
+# tick marks with numbers, a glowing needle with a pivot cap.
+# ------------------------------------------------------------------
+import math
+
+
+def build_gauge_svg(value, vmin, vmax, label, unit, accent):
+    frac = max(0.0, min(1.0, (value - vmin) / (vmax - vmin))) if vmax > vmin else 0.5
+    sweep = 250
+    start_angle = -125
+    needle_angle = start_angle + frac * sweep
+    cx = cy = 100
+    r_outer, r_face = 96, 84
+    r_tick_out, r_tick_in, r_tick_in_minor, r_label = 78, 68, 72, 58
+
+    def pt(angle_deg, radius):
+        rad = math.radians(angle_deg)
+        return cx + radius * math.sin(rad), cy - radius * math.cos(rad)
+
+    n_major = 6
+    ticks, labels = [], []
+    for i in range(n_major + 1):
+        a = start_angle + (sweep * i / n_major)
+        x1, y1 = pt(a, r_tick_in)
+        x2, y2 = pt(a, r_tick_out)
+        ticks.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="#cfe8f5" stroke-width="2.4" stroke-linecap="round"/>')
+        val = vmin + (vmax - vmin) * i / n_major
+        vtxt = f"{val:.0f}" if (vmax - vmin) >= 10 else f"{val:.1f}"
+        lx, ly = pt(a, r_label)
+        labels.append(f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="9" fill="#7ea6c4" text-anchor="middle" dominant-baseline="middle" font-family="Share Tech Mono, monospace">{vtxt}</text>')
+
+    n_minor = n_major * 4
+    minors = []
+    for i in range(n_minor + 1):
+        if i % 4 == 0:
+            continue
+        a = start_angle + (sweep * i / n_minor)
+        x1, y1 = pt(a, r_tick_in_minor)
+        x2, y2 = pt(a, r_tick_out)
+        minors.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="#5a89a8" stroke-width="1" stroke-linecap="round"/>')
+
+    arc_x1, arc_y1 = pt(start_angle, r_tick_out + 6)
+    arc_x2, arc_y2 = pt(needle_angle, r_tick_out + 6)
+    large_arc = 1 if (needle_angle - start_angle) > 180 else 0
+    progress_arc = (f'<path d="M {arc_x1:.1f} {arc_y1:.1f} A {r_tick_out+6} {r_tick_out+6} 0 {large_arc} 1 '
+                    f'{arc_x2:.1f} {arc_y2:.1f}" fill="none" stroke="{accent}" stroke-width="3.5" '
+                    f'stroke-linecap="round" opacity="0.85"/>')
+
+    tip_x, tip_y = pt(needle_angle, 62)
+    left_x, left_y = pt(needle_angle - 90, 4)
+    right_x, right_y = pt(needle_angle + 90, 4)
+    back_x, back_y = pt(needle_angle + 180, 14)
+    vtxt_display = f"{value:.1f}" if (vmax - vmin) < 10 else f"{value:.0f}"
+    uid = label.replace(" ", "").replace(".", "")
+
+    return f'''
+<svg viewBox="0 0 200 210" xmlns="http://www.w3.org/2000/svg" width="100%">
+  <defs>
+    <radialGradient id="bezel-{uid}" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#3a4a5c"/><stop offset="55%" stop-color="#1a2634"/><stop offset="100%" stop-color="#0a1420"/>
+    </radialGradient>
+    <radialGradient id="face-{uid}" cx="40%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#0f2438"/><stop offset="70%" stop-color="#071626"/><stop offset="100%" stop-color="#030b14"/>
+    </radialGradient>
+    <linearGradient id="glass-{uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.10"/><stop offset="35%" stop-color="#ffffff" stop-opacity="0.02"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow-{uid}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="{accent}" stop-opacity="0.9"/><stop offset="100%" stop-color="{accent}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="{cx}" cy="{cy}" r="{r_outer}" fill="url(#bezel-{uid})" stroke="#4a5d70" stroke-width="1.5"/>
+  <circle cx="{cx}" cy="{cy}" r="{r_face}" fill="url(#face-{uid})" stroke="rgba(34,211,238,0.25)" stroke-width="1"/>
+  {"".join(minors)}
+  {"".join(ticks)}
+  {progress_arc}
+  {"".join(labels)}
+  <circle cx="{cx}" cy="{cy}" r="30" fill="url(#glow-{uid})" opacity="0.35"/>
+  <polygon points="{tip_x:.1f},{tip_y:.1f} {left_x:.1f},{left_y:.1f} {back_x:.1f},{back_y:.1f} {right_x:.1f},{right_y:.1f}" fill="{accent}" stroke="#ffffff" stroke-width="0.4" opacity="0.95"/>
+  <circle cx="{cx}" cy="{cy}" r="7" fill="#0d1b28" stroke="{accent}" stroke-width="2"/>
+  <circle cx="{cx}" cy="{cy}" r="2.4" fill="{accent}"/>
+  <circle cx="{cx}" cy="{cy}" r="{r_face}" fill="url(#glass-{uid})"/>
+  <text x="100" y="150" font-size="20" fill="#e0f2fe" text-anchor="middle" font-family="Share Tech Mono, monospace" font-weight="bold">{vtxt_display}</text>
+  <text x="100" y="164" font-size="9" fill="#7ea6c4" text-anchor="middle" font-family="Share Tech Mono, monospace" letter-spacing="1">{unit}</text>
+  <text x="100" y="196" font-size="10" fill="#9cc4de" text-anchor="middle" font-family="Share Tech Mono, monospace" letter-spacing="0.5">{label}</text>
+</svg>
+'''
+
 # ------------------------------------------------------------------
 # PAGE CONFIG
 # ------------------------------------------------------------------
@@ -396,35 +487,8 @@ for col, (sensor, spec) in zip(dial_cols, instrument_specs.items()):
     reading = float(last_row[sensor].values[0])
     lo, hi = spec["range"]
     with col:
-        fig_dial = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=reading,
-            number={"suffix": f" {spec['unit']}", "font": {"size": 18, "color": "#e0f2fe", "family": "Share Tech Mono"}},
-            gauge={
-                "axis": {"range": [lo, hi], "tickcolor": "#5a89a8", "tickfont": {"size": 8, "color": "#5a89a8"}, "nticks": 4},
-                "bar": {"color": spec["color"], "thickness": 0.35},
-                "bgcolor": "rgba(0,0,0,0)",
-                "borderwidth": 1,
-                "bordercolor": "rgba(34,211,238,0.25)",
-                "threshold": {
-                    "line": {"color": "#e0f2fe", "width": 2},
-                    "thickness": 0.9,
-                    "value": reading
-                }
-            }
-        ))
-        fig_dial.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            height=160,
-            margin=dict(l=15, r=15, t=10, b=0)
-        )
-        st.plotly_chart(fig_dial, use_container_width=True, config={"displayModeBar": False})
-        st.markdown(
-            f"<div style='text-align:center;font-size:11px;color:#7ea6c4;"
-            f"letter-spacing:1px;margin-top:-10px;'>{spec['label']}</div>",
-            unsafe_allow_html=True
-        )
+        svg = build_gauge_svg(reading, lo, hi, spec["label"], spec["unit"], spec["color"])
+        st.markdown(svg, unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
